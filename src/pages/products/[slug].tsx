@@ -9,7 +9,10 @@ import {
   CardContent,
   CardMedia,
   Button,
+  Box,
+  CircularProgress,
 } from "@mui/material";
+import { slugify } from "../../utils/slugify";
 
 type ProductDetailProps = {
   product: Product;
@@ -19,36 +22,69 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
   const router = useRouter();
 
   if (router.isFallback) {
-    return <div>Loading...</div>;
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <Container>
-      <Card>
+    <Container sx={{ mt: 4 }}>
+      <Card
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          boxShadow: 3,
+          borderRadius: 2,
+        }}
+      >
         <CardMedia
           component="img"
-          height="400"
+          sx={{
+            width: { xs: "100%", md: "50%" },
+            objectFit: "contain",
+            margin: "auto",
+          }}
           image={product.image}
           alt={product.title}
         />
-        <CardContent>
+        <CardContent
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: 4,
+          }}
+        >
           <Typography variant="h3" gutterBottom>
             {product.title}
           </Typography>
           <Typography variant="body1" paragraph>
             {product.description}
           </Typography>
-          <Typography variant="h5" color="text.primary">
+          <Typography variant="h5" color="text.primary" paragraph>
             ${product.price}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" paragraph>
             Rating: {product.rating.rate} ({product.rating.count} reviews)
           </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => router.back()}
+          >
+            Back to Products
+          </Button>
         </CardContent>
       </Card>
-      <Button variant="contained" color="primary" onClick={() => router.back()}>
-        Back to Products
-      </Button>
     </Container>
   );
 };
@@ -56,7 +92,7 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
 export const getStaticPaths: GetStaticPaths = async () => {
   const products = await getProducts();
   const paths = products.map((product: Product) => ({
-    params: { id: product.id.toString() },
+    params: { slug: slugify(product.title) },
   }));
 
   return {
@@ -67,8 +103,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const products = await getProducts();
+  const slug = params?.slug as string;
   const product = products.find(
-    (product: Product) => product.id.toString() === params?.id
+    (product: Product) => slugify(product.title) === slug
   );
 
   if (!product) {

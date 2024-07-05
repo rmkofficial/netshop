@@ -13,6 +13,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { slugify } from "../../utils/slugify";
+import { useCart } from "../../context/CartContext";
 
 type ProductDetailProps = {
   product: Product;
@@ -20,6 +21,7 @@ type ProductDetailProps = {
 
 const ProductDetail = ({ product }: ProductDetailProps) => {
   const router = useRouter();
+  const { dispatch } = useCart();
 
   if (router.isFallback) {
     return (
@@ -35,6 +37,18 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
       </Box>
     );
   }
+
+  const handleAddToCart = () => {
+    dispatch({
+      type: "ADD_TO_CART",
+      item: {
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        quantity: 1,
+      },
+    });
+  };
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -76,10 +90,14 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
           <Typography variant="body2" color="text.secondary" paragraph>
             Rating: {product.rating.rate} ({product.rating.count} reviews)
           </Typography>
+          <Button variant="contained" color="primary" onClick={handleAddToCart}>
+            Add to Cart
+          </Button>
           <Button
             variant="contained"
-            color="primary"
+            color="secondary"
             onClick={() => router.back()}
+            sx={{ mt: 2 }}
           >
             Back to Products
           </Button>
